@@ -1,9 +1,10 @@
 import pandas as pd
 import requests
+from textblob import TextBlob
 
-# =========================================================
-# 1. GITHUB API (DATA SOURCE)
-# =========================================================
+# =========================
+# GitHub data
+# =========================
 def fetch_github(search_term):
     url = f"https://api.github.com/search/repositories?q={search_term}"
     r = requests.get(url)
@@ -26,9 +27,9 @@ def fetch_github(search_term):
     return pd.DataFrame(results)
 
 
-# =========================================================
-# 2. PRODUCTHUNT MOCK DATA
-# =========================================================
+# =========================
+# ProductHunt mock
+# =========================
 def fetch_producthunt(search_term):
     data = [
         {"source": "ProductHunt", "name": "AI Tool X", "stars": 1200, "language": "AI", "score": 4.8},
@@ -38,9 +39,9 @@ def fetch_producthunt(search_term):
     return pd.DataFrame(data)
 
 
-# =========================================================
-# 3. MERGED DATASET (SAFE STRUCTURE)
-# =========================================================
+# =========================
+# Merge dataset
+# =========================
 def fetch_all_data(search_term):
     df = pd.concat([
         fetch_github(search_term),
@@ -50,69 +51,32 @@ def fetch_all_data(search_term):
     if df.empty:
         return df
 
-    # standardize columns
     df.columns = [c.lower() for c in df.columns]
 
-    required = ["source", "name", "stars", "language", "score"]
-
-    for col in required:
+    for col in ["source", "name", "stars", "language", "score"]:
         if col not in df.columns:
             df[col] = 0 if col in ["stars", "score"] else "unknown"
 
     return df
 
 
-# =========================================================
-# 4. SENTIMENT (NO TORCH / NO TORCHVISION VERSION)
-# =========================================================
-
-# IMPORTANT: use lightweight pipeline only
-from transformers import pipeline
-
-sentiment_model = pipeline(
-    "sentiment-analysis",
-    model="distilbert-base-uncased-finetuned-sst-2-english",
-    framework="pt"   # keeps it stable
-)
-
-
-# =========================================================
-# 5. FAKE REVIEWS (SAFE FOR LAB)
-# =========================================================
+# =========================
+# Sentiment
+# =========================
 def fetch_reviews(app_name):
     return [
-        f"{app_name} is amazing and very useful",
-        f"I hate using {app_name}, it's too slow",
-        f"{app_name} works perfectly fine",
-        f"Very bad experience with {app_name}",
-        f"I really love this app"
+        f"{app_name} is great",
+        f"I like {app_name}",
+        f"{app_name} is bad sometimes",
+        f"Amazing experience with {app_name}"
     ]
 
 
-# =========================================================
-# 6. SENTIMENT ANALYSIS PER REVIEW
-# =========================================================
-def analyze_reviews(reviews):
-    results = []
+def analyze_sentiment(text):
+    score = TextBlob(text).sentiment.polarity
 
-    for r in reviews:
-        pred = sentiment_model(r)[0]
-
-        results.append({
-            "review": r,
-            "label": pred["label"],
-            "score": float(pred["score"])
-        })
-
-    return pd.DataFrame(results)
-
-
-# =========================================================
-# 7. GLOBAL SENTIMENT SCORE
-# =========================================================
-def compute_app_sentiment(df_reviews):
-    if df_reviews.empty:
-        return 0
-
-    positive = df_reviews[df_reviews["label"] == "POSITIVE"].shape[0]
-    return positive / len(df_reviews)
+    if score > 0:
+        return "positive"
+    elif score < 0:
+        return "negative"
+    return "neutral"
