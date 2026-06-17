@@ -4,6 +4,7 @@ Le développement de cette application a été une expérience formatrice, ponct
 
 1. Initialisation et configuration
 Tout a commencé par la mise en place de mon environnement de travail. J'ai d'abord configuré mon espace local et établi une liaison directe entre VS Code et GitHub pour garantir un versionnage efficace de mon code. Avant de me lancer dans le cœur du projet, j'ai réalisé une phase de prototypage via test_app.py, où j'ai pu expérimenter les différents widgets de Streamlit et valider leur comportement.
+
 Le document joint présente quelques premières étapes de réalisation du projet. Même s'il n'est pas complet, il témoigne du respect de la démarche préconisée dans le guide du projet. 
 
 3. Itération et montée en charge
